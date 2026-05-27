@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WebinarFunnel AI — Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f0f2f5; }
+    .wa-bubble-out { background: #dcf8c6; border-radius: 12px 12px 4px 12px; }
+    .wa-bubble-in  { background: #ffffff; border-radius: 12px 12px 12px 4px; }
+    .wa-chat { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23e2e8f0' fill-opacity='0.5'/%3E%3C/svg%3E"); }
+    .intent-badge { font-size: 10px; padding: 2px 6px; border-radius: 9999px; }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-green-600 to-emerald-500 text-white px-6 py-4 shadow-lg">
+    <div class="max-w-5xl mx-auto flex items-center gap-3">
+      <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">💬</div>
+      <div>
+        <h1 class="text-xl font-bold">WebinarFunnel AI</h1>
+        <p class="text-green-100 text-xs">WhatsApp Automation × Claude AI — Live Demo</p>
+      </div>
+      <div class="ml-auto">
+        <span id="health-badge" class="bg-white/20 text-white text-xs px-3 py-1 rounded-full">Checking…</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- LEFT: Registration + Reminders -->
+    <div class="space-y-5">
+
+      <!-- Section 1: Register -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-green-50 border-b border-green-100 px-5 py-3 flex items-center gap-2">
+          <span class="text-green-600 text-lg">📋</span>
+          <h2 class="font-semibold text-gray-800">1. Register New Attendee</h2>
+        </div>
+        <div class="p-5 space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <input id="reg-name" type="text" placeholder="Full Name" value="Sarah Johnson"
+              class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"/>
+            <input id="reg-email" type="email" placeholder="Email" value="sarah@example.com"
+              class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"/>
+          </div>
+          <input id="reg-phone" type="text" placeholder="Phone (e.g. +14155551234)" value="+14155551234"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"/>
+          <input id="reg-date" type="datetime-local"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"/>
+          <button onclick="registerAttendee()"
+            class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+            Register & Schedule Reminders
+          </button>
+          <div id="reg-result" class="hidden text-xs p-3 rounded-lg"></div>
+        </div>
+      </div>
+
+      <!-- Section 2: Send Reminders -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-blue-50 border-b border-blue-100 px-5 py-3 flex items-center gap-2">
+          <span class="text-blue-600 text-lg">⏰</span>
+          <h2 class="font-semibold text-gray-800">2. Trigger Reminder</h2>
+        </div>
+        <div class="p-5 space-y-3">
+          <div class="flex gap-2">
+            <input id="reminder-id" type="text" placeholder="Registrant ID (from step 1)"
+              class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="sendReminder('confirmation')" class="reminder-btn bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg text-xs font-medium transition-colors">✅ Confirmation</button>
+            <button onclick="sendReminder('day_before')" class="reminder-btn bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-xs font-medium transition-colors">📅 Day Before</button>
+            <button onclick="sendReminder('hour_before')" class="reminder-btn bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg text-xs font-medium transition-colors">⚡ Hour Before</button>
+            <button onclick="sendReminder('post_webinar')" class="reminder-btn bg-purple-500 hover:bg-purple-600 text-white py-2 rounded-lg text-xs font-medium transition-colors">🎯 Post Webinar</button>
+          </div>
+          <div id="reminder-result" class="hidden text-xs p-3 rounded-lg bg-blue-50 text-blue-700"></div>
+        </div>
+      </div>
+
+      <!-- Section 4: Registrants List -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-gray-50 border-b border-gray-100 px-5 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-600 text-lg">👥</span>
+            <h2 class="font-semibold text-gray-800">Registrants</h2>
+          </div>
+          <button onclick="loadRegistrants()" class="text-xs text-gray-500 hover:text-gray-700">↻ Refresh</button>
+        </div>
+        <div id="registrants-list" class="p-4 space-y-2 max-h-48 overflow-y-auto">
+          <p class="text-xs text-gray-400 text-center py-2">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: WhatsApp Chat -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col" style="height:680px">
+      <!-- Chat header -->
+      <div class="bg-green-600 text-white px-4 py-3 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🤖</div>
+        <div>
+          <p class="font-semibold text-sm">WebinarFunnel AI Bot</p>
+          <p class="text-green-200 text-xs flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-300 rounded-full inline-block pulse"></span>Online</p>
+        </div>
+        <div class="ml-auto text-xs text-green-200">Simulated WhatsApp</div>
+      </div>
+
+      <!-- Section 3: Inbound Message Simulator -->
+      <div class="bg-amber-50 border-b border-amber-100 px-4 py-2 flex items-center gap-2">
+        <span class="text-amber-600 text-sm">💬</span>
+        <span class="text-xs font-medium text-amber-700">Simulate inbound reply:</span>
+        <input id="inbound-id" type="text" placeholder="Registrant ID"
+          class="flex-1 border border-amber-200 bg-white rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"/>
+      </div>
+
+      <!-- Chat messages -->
+      <div id="chat-messages" class="wa-chat flex-1 overflow-y-auto p-4 space-y-3"></div>
+
+      <!-- Input -->
+      <div class="border-t border-gray-100 p-3 flex gap-2">
+        <input id="inbound-message" type="text" placeholder="Type a WhatsApp reply…"
+          class="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          onkeydown="if(event.key==='Enter') sendInbound()"/>
+        <button onclick="sendInbound()"
+          class="w-10 h-10 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors">
+          <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let currentRegistrantId = null;
+
+const SAMPLE_MESSAGES = [
+  "What exactly is covered in the webinar?",
+  "I'm interested! How do I book the strategy call?",
+  "Will this work for my e-commerce business?",
+  "I'm not sure I have time for this right now",
+  "Yes, I'd love to book a call!",
+];
+
+window.addEventListener('load', () => {
+  const now = new Date(); now.setDate(now.getDate() + 1); now.setHours(14,0,0);
+  document.getElementById('reg-date').value = now.toISOString().slice(0,16);
+  loadRegistrants();
+  checkHealth();
+  appendChatMessage('assistant', "👋 Welcome to WebinarFunnel AI! Register an attendee, trigger reminders, and simulate WhatsApp conversations powered by Claude.");
+  appendSampleButtons();
+});
+
+async function checkHealth() {
+  try {
+    const r = await fetch('/health'); const d = await r.json();
+    const b = document.getElementById('health-badge');
+    b.textContent = d.anthropic_key_set ? '🟢 Claude Connected' : '🟡 Demo Mode';
+  } catch(e) {}
+}
+
+async function registerAttendee() {
+  const body = {
+    name: document.getElementById('reg-name').value,
+    email: document.getElementById('reg-email').value,
+    phone: document.getElementById('reg-phone').value,
+    webinar_date: document.getElementById('reg-date').value + ':00',
+  };
+  const r = await fetch('/webhook/registration', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const d = await r.json();
+  const el = document.getElementById('reg-result');
+  el.classList.remove('hidden');
+  if (r.ok) {
+    currentRegistrantId = d.registrant_id;
+    document.getElementById('reminder-id').value = d.registrant_id;
+    document.getElementById('inbound-id').value = d.registrant_id;
+    el.className = 'text-xs p-3 rounded-lg bg-green-50 text-green-700';
+    el.textContent = `✅ Registered! ID: ${d.registrant_id} — ${d.scheduled_reminders.length} reminders scheduled`;
+    await loadRegistrants();
+    setTimeout(() => loadChatHistory(d.registrant_id), 1500);
+  } else {
+    el.className = 'text-xs p-3 rounded-lg bg-red-50 text-red-700';
+    el.textContent = `❌ ${d.detail}`;
+  }
+}
+
+async function sendReminder(type) {
+  const rid = document.getElementById('reminder-id').value.trim();
+  if (!rid) { alert('Enter a Registrant ID first'); return; }
+  const r = await fetch(`/send-reminder/${rid}/${type}`, { method:'POST' });
+  const d = await r.json();
+  const el = document.getElementById('reminder-result');
+  el.classList.remove('hidden');
+  if (r.ok) {
+    el.textContent = `📤 Sent ${type}: "${d.message_sent.slice(0,80)}…"`;
+    appendChatMessage('assistant', d.message_sent, type.replace('_',' '));
+  } else {
+    el.textContent = `❌ ${d.detail}`;
+  }
+}
+
+async function sendInbound() {
+  const rid = document.getElementById('inbound-id').value.trim() || currentRegistrantId;
+  const msg = document.getElementById('inbound-message').value.trim();
+  if (!rid) { alert('Enter Registrant ID'); return; }
+  if (!msg) return;
+  document.getElementById('inbound-message').value = '';
+  appendChatMessage('user', msg);
+
+  const r = await fetch('/webhook/inbound-message', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ phone: '', message: msg, registrant_id: rid })
+  });
+  const d = await r.json();
+  if (r.ok) {
+    appendChatMessage('assistant', d.reply, d.intent_detected);
+    if (d.booking_triggered) appendChatMessage('system', '🎉 Booking link triggered! cal.com/webinar');
+  } else {
+    appendChatMessage('system', `Error: ${d.detail}`);
+  }
+}
+
+async function loadChatHistory(rid) {
+  const r = await fetch(`/conversation/${rid}`);
+  const d = await r.json();
+  if (r.ok && d.turns.length) {
+    document.getElementById('chat-messages').innerHTML = '';
+    d.turns.forEach(t => appendChatMessage(t.role === 'inbound' ? 'user' : 'assistant', t.message, t.intent));
+  }
+}
+
+async function loadRegistrants() {
+  const r = await fetch('/registrants'); const d = await r.json();
+  const el = document.getElementById('registrants-list');
+  if (!d.registrants.length) { el.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">No registrants yet.</p>'; return; }
+  el.innerHTML = d.registrants.map(reg => `
+    <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="selectRegistrant('${reg.id}', '${esc(reg.name)}')">
+      <div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">${reg.name.charAt(0)}</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-semibold text-gray-700 truncate">${esc(reg.name)}</p>
+        <p class="text-xs text-gray-400">${reg.id} · ${reg.booking_triggered ? '🎯 Booked' : '⏳ Following up'}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectRegistrant(id, name) {
+  currentRegistrantId = id;
+  document.getElementById('reminder-id').value = id;
+  document.getElementById('inbound-id').value = id;
+  loadChatHistory(id);
+}
+
+let msgCount = 0;
+function appendChatMessage(role, text, intent) {
+  const chat = document.getElementById('chat-messages');
+  const id = 'msg-' + (++msgCount);
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const intentBadge = intent && intent !== 'general' ? `<span class="intent-badge ml-1 ${intentColor(intent)}">${intent.replace('_',' ')}</span>` : '';
+
+  if (role === 'system') {
+    chat.insertAdjacentHTML('beforeend', `<div class="flex justify-center"><span class="text-xs text-gray-400 bg-white px-3 py-1 rounded-full shadow-sm">${esc(text)}</span></div>`);
+  } else if (role === 'user' || role === 'inbound') {
+    chat.insertAdjacentHTML('beforeend', `
+      <div class="flex justify-end">
+        <div class="wa-bubble-out px-3 py-2 max-w-xs shadow-sm">
+          <p class="text-sm text-gray-800">${esc(text)}</p>
+          <p class="text-xs text-gray-400 text-right mt-0.5">${time} ✓✓</p>
+        </div>
+      </div>`);
+  } else {
+    chat.insertAdjacentHTML('beforeend', `
+      <div class="flex gap-2">
+        <div class="w-7 h-7 rounded-full bg-green-500 flex-shrink-0 flex items-center justify-center text-white text-xs mt-0.5">🤖</div>
+        <div class="wa-bubble-in px-3 py-2 max-w-xs shadow-sm border border-gray-100">
+          <p class="text-sm text-gray-800">${esc(text)}</p>
+          <div class="flex items-center gap-1 mt-0.5">${intentBadge}<span class="text-xs text-gray-400 ml-auto">${time}</span></div>
+        </div>
+      </div>`);
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function appendSampleButtons() {
+  const chat = document.getElementById('chat-messages');
+  chat.insertAdjacentHTML('beforeend', `
+    <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+      <p class="text-xs text-gray-500 mb-2 font-medium">Quick sample replies:</p>
+      <div class="flex flex-wrap gap-1.5">
+        ${SAMPLE_MESSAGES.map(m => `<button onclick="quickSend('${m.replace(/'/g,"\\'")}'); this.parentElement.parentElement.remove();" class="text-xs bg-green-50 hover:bg-green-100 text-green-700 px-2 py-1 rounded-lg border border-green-200 transition-colors">${m.slice(0,35)}…</button>`).join('')}
+      </div>
+    </div>`);
+}
+
+function quickSend(msg) {
+  document.getElementById('inbound-message').value = msg;
+  sendInbound();
+}
+
+function intentColor(intent) {
+  const map = { booking_interest:'bg-green-100 text-green-700', objection:'bg-orange-100 text-orange-700', question:'bg-blue-100 text-blue-700', general:'bg-gray-100 text-gray-600' };
+  return map[intent] || 'bg-gray-100 text-gray-600';
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
