@@ -4,7 +4,7 @@ import logging
 import anthropic
 
 logger = logging.getLogger(__name__)
-MODEL = "claude-haiku-20240307"
+MODEL = "claude-haiku-4-5-20251001"
 
 SYSTEM_PROMPT = """You are an AI assistant for a business automation webinar host. Your goal is to answer questions about the webinar content, handle objections, and guide interested attendees toward booking a free strategy call.
 
